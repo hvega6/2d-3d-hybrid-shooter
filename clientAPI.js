@@ -15,3 +15,18 @@ const result = await fal.subscribe("fal-ai/flux/dev", {
 fal.config({
     credentials: "YOUR_FAL_KEY"
   });
+
+// Fetching assets from an API
+async function loadAssets() {
+    const response = await fetch('https://api.opengameart.org/v1/artworks');
+    const data = await response.json();
+    
+    // Assuming the API returns an array of assets
+    data.artworks.forEach(asset => {
+        console.log(`Asset Name: ${asset.name}, URL: ${asset.url}`);
+        // Load the asset into your game (e.g., textures, models)
+    });
+}
+
+// Call the function to load assets
+loadAssets();
