@@ -1,32 +1,66 @@
-import * as fal from "@fal-ai/serverless-client";
+let raw = "";
 
-const result = await fal.subscribe("fal-ai/flux/dev", {
-  input: {
-    prompt: "Extreme close-up of a single tiger eye, direct frontal view. Detailed iris and pupil. Sharp focus on eye texture and color. Natural lighting to capture authentic eye shine and depth. The word \"FLUX\" is painted over it in big, white brush strokes with visible texture."
-  },
-  logs: true,
-  onQueueUpdate: (update) => {
-    if (update.status === "IN_PROGRESS") {
-      update.logs.map((log) => log.message).forEach(console.log);
-    }
-  },
-});
+let requestOptions = {
+  method: 'POST',
+  body: raw,
+  redirect: 'follow'
+};
 
-fal.config({
-    credentials: "YOUR_FAL_KEY"
-  });
+fetch("https://queue.fal.run/fal-ai/flux/dev?Authorization=key 5503a2be-8a37-4319-8ce9-d7dd552b1434:9f2ca6fb7a64286973d2f4deb87ef2fd", requestOptions)
+  .then(response => response.text())
+  .then(result => console.log(result))
+  .catch(error => console.log('error', error));
 
-// Fetching assets from an API
-async function loadAssets() {
-    const response = await fetch('https://api.opengameart.org/v1/artworks');
-    const data = await response.json();
-    
-    // Assuming the API returns an array of assets
-    data.artworks.forEach(asset => {
-        console.log(`Asset Name: ${asset.name}, URL: ${asset.url}`);
-        // Load the asset into your game (e.g., textures, models)
-    });
+// Function to fetch characters
+function fetchCharacters() {
+  fetch("https://your-api-endpoint.com/characters") // Update with your actual endpoint
+    .then(response => response.json())
+    .then(data => {
+      const characterList = document.getElementById('character-list');
+      characterList.innerHTML = ''; // Clear existing characters
+      data.forEach(character => {
+        const characterDiv = document.createElement('div');
+        characterDiv.className = 'character';
+        characterDiv.innerHTML = `
+          <img src="${character.image}" alt="${character.name}">
+          <p>${character.name}</p>
+          <button onclick="selectCharacter('${character.id}')">Select</button>
+        `;
+        characterList.appendChild(characterDiv);
+      });
+    })
+    .catch(error => console.log('error', error));
 }
 
-// Call the function to load assets
-loadAssets();
+// Call fetchCharacters on page load
+fetchCharacters();
+
+// Function to handle character selection
+function selectCharacter(characterId) {
+  console.log(`Character selected: ${characterId}`);
+  // Add your logic for what happens when a character is selected
+}
+
+// Function to create a character
+function createCharacter(name) {
+  if (document.querySelectorAll('.character').length < 2) { // Check if less than 2 characters exist
+    const characterDiv = document.createElement('div');
+    characterDiv.className = 'character';
+    characterDiv.innerHTML = `
+      <p>${name}</p>
+      <button onclick="removeCharacter(this)">Remove</button>
+    `;
+    document.getElementById('character-list').appendChild(characterDiv);
+  } else {
+    alert("You can only create up to 2 characters.");
+  }
+}
+
+// Function to remove a character
+function removeCharacter(button) {
+  const characterDiv = button.parentElement;
+  characterDiv.remove();
+}
+
+// Example usage: create a character with a name
+createCharacter("New Character");
