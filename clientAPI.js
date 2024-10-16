@@ -1,66 +1,59 @@
-let raw = "";
+// Function to generate character
+function generateCharacter(prompt) {
+  const raw = JSON.stringify({ prompt: prompt });
+  const myHeaders = new Headers();
+  myHeaders.append("Content-Type", "application/json");
+  myHeaders.append("Authorization", "Bearer lmwr_sk_jtWuy90JMn_S7QmQzJk4RJoaphUNMxR2rcHOGnttSJAgRy7V");
 
-let requestOptions = {
-  method: 'POST',
-  body: raw,
-  redirect: 'follow'
-};
+  const requestOptions = {
+    method: 'POST',
+    headers: myHeaders,
+    body: raw,
+    redirect: 'follow'
+  };
 
-fetch("https://queue.fal.run/fal-ai/flux/dev?Authorization=key 5503a2be-8a37-4319-8ce9-d7dd552b1434:9f2ca6fb7a64286973d2f4deb87ef2fd", requestOptions)
-  .then(response => response.text())
-  .then(result => console.log(result))
-  .catch(error => console.log('error', error));
-
-// Function to fetch characters
-function fetchCharacters() {
-  fetch("https://your-api-endpoint.com/characters") // Update with your actual endpoint
-    .then(response => response.json())
-    .then(data => {
-      const characterList = document.getElementById('character-list');
-      characterList.innerHTML = ''; // Clear existing characters
-      data.forEach(character => {
-        const characterDiv = document.createElement('div');
-        characterDiv.className = 'character';
-        characterDiv.innerHTML = `
-          <img src="${character.image}" alt="${character.name}">
-          <p>${character.name}</p>
-          <button onclick="selectCharacter('${character.id}')">Select</button>
-        `;
-        characterList.appendChild(characterDiv);
-      });
+  fetch("https://api.limewire.com/api/image/generation", requestOptions)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
     })
-    .catch(error => console.log('error', error));
+    .then(result => {
+      console.log(result);
+      const requestId = result.request_id; // Ensure the response contains the request_id
+      pollRequest(requestId);
+    })
+    .catch(error => console.error('Error:', error));
 }
 
-// Call fetchCharacters on page load
-fetchCharacters();
+// Function to poll the GET request
+function pollRequest(requestId) {
+  const myHeaders = new Headers();
+  myHeaders.append("Authorization", "Bearer lmwr_sk_jtWuy90JMn_S7QmQzJk4RJoaphUNMxR2rcHOGnttSJAgRy7V");
 
-// Function to handle character selection
-function selectCharacter(characterId) {
-  console.log(`Character selected: ${characterId}`);
-  // Add your logic for what happens when a character is selected
+  const requestOptions = {
+    method: 'GET',
+    headers: myHeaders,
+    redirect: 'follow'
+  };
+
+  fetch(`https://api.limewire.com/api/image/generation/${requestId}`, requestOptions)
+    .then(response => response.json())
+    .then(result => {
+      console.log(result);
+      const characterOutput = document.getElementById('character-output');
+      characterOutput.innerHTML = `
+        <h2>Generated Character</h2>
+        <img src="${result.image}" alt="Generated Character">
+      `;
+    })
+    .catch(error => console.error('Error:', error));
 }
 
-// Function to create a character
-function createCharacter(name) {
-  if (document.querySelectorAll('.character').length < 2) { // Check if less than 2 characters exist
-    const characterDiv = document.createElement('div');
-    characterDiv.className = 'character';
-    characterDiv.innerHTML = `
-      <p>${name}</p>
-      <button onclick="removeCharacter(this)">Remove</button>
-    `;
-    document.getElementById('character-list').appendChild(characterDiv);
-  } else {
-    alert("You can only create up to 2 characters.");
-  }
-}
-
-// Function to remove a character
-function removeCharacter(button) {
-  const characterDiv = button.parentElement;
-  characterDiv.remove();
-}
-
-// Example usage: create a character with a name
-createCharacter("New Character");
+// Event listener for character form submission
+document.getElementById('character-form').addEventListener('submit', function(event) {
+  event.preventDefault();
+  const prompt = document.getElementById('prompt').value;
+  generateCharacter(prompt);
+});
